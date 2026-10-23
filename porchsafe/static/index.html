@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PorchSafe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{
+  --paper:#eef2ef; --card:#ffffff; --ink:#1c2a2e; --soft:#5b6b6f; --rule:#d5ddd8;
+  --safe:#2e8c7a; --safe-wash:#d7ece6; --cold:#3b6fd8; --heat:#c97a12; --alarm:#c8323c; --alarm-wash:#fbe3e4;
+  --watch:#b8860b; --watch-wash:#fbefd3;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#121c1f; --card:#192629; --ink:#e7eeec; --soft:#9aaaa9; --rule:#2b3b3e;
+    --safe:#4fbca5; --safe-wash:#173a33; --cold:#7fa4f2; --heat:#e9a23b; --alarm:#ff6b72; --alarm-wash:#3d1a1d;
+    --watch:#e2b33f; --watch-wash:#3a3016;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.5 "Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:inherit}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--cold);outline-offset:2px}
+
+.top{display:flex;align-items:baseline;gap:14px;padding:18px 24px 6px;max-width:1240px;margin:0 auto}
+.brand{font-size:24px;font-weight:700;letter-spacing:-.2px}
+.tagline{color:var(--soft)}
+.clock{margin-left:auto;color:var(--soft);font-variant-numeric:tabular-nums}
+
+.banner{max-width:1240px;margin:8px auto 0;padding:0 24px}
+.banner div{background:var(--alarm);color:#fff;border-radius:10px;padding:12px 16px;font-weight:700;display:none}
+.banner div.on{display:block}
+
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;max-width:1240px;margin:0 auto;padding:16px 24px 40px}
+@media (max-width:960px){.layout{grid-template-columns:1fr}}
+
+h2{font-size:19px;margin:6px 0 12px}
+.empty{background:var(--card);border:1px dashed var(--rule);border-radius:14px;padding:22px;color:var(--soft)}
+
+/* package on the porch */
+.pkg{background:var(--card);border-radius:16px;padding:18px 20px;margin-bottom:16px;border-left:8px solid var(--safe)}
+.pkg.WATCH{border-left-color:var(--watch)}
+.pkg.ACT_NOW,.pkg.EXCEEDED{border-left-color:var(--alarm)}
+.pkg-head{display:flex;gap:16px;align-items:flex-start}
+.pkg-title{font-size:20px;font-weight:700;margin:0}
+.pkg-sub{color:var(--soft)}
+.minutes{margin-left:auto;text-align:right;line-height:1}
+.minutes b{display:block;font-size:52px;font-variant-numeric:tabular-nums}
+.minutes span{color:var(--soft);font-size:14px}
+.status{display:inline-block;margin:12px 0 4px;padding:4px 12px;border-radius:999px;font-weight:700;background:var(--safe-wash);color:var(--safe)}
+.status.WATCH{background:var(--watch-wash);color:var(--watch)}
+.status.ACT_NOW,.status.EXCEEDED{background:var(--alarm-wash);color:var(--alarm)}
+.headline{font-size:19px;margin:6px 0 10px}
+
+/* the label band: what the label allows vs. the porch right now */
+.band{position:relative;height:58px;margin:18px 2px 6px}
+.band .track{position:absolute;left:0;right:0;top:22px;height:14px;border-radius:7px;background:linear-gradient(90deg,var(--cold),#9db8ee 30%,#f0c98f 70%,var(--heat))}
+.band .exc,.band .store{position:absolute;top:22px;height:14px}
+.band .exc{background:repeating-linear-gradient(135deg,var(--safe-wash) 0 5px,transparent 5px 10px);border:2px solid var(--safe);border-radius:7px;top:20px;height:18px}
+.band .store{background:var(--safe);border-radius:7px;opacity:.9}
+.band .mark{position:absolute;top:6px;width:4px;height:46px;background:var(--ink);border-radius:2px;transform:translateX(-2px);transition:left .6s ease}
+.band .mark span{position:absolute;top:-4px;left:8px;white-space:nowrap;font-weight:700;font-variant-numeric:tabular-nums}
+.band .tick{position:absolute;top:42px;font-size:12px;color:var(--soft);transform:translateX(-50%)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--soft)}
+.legend i{display:inline-block;width:18px;height:10px;border-radius:5px;margin-right:6px;vertical-align:middle}
+
+.reasons{margin:10px 0 0;padding-left:20px;color:var(--soft)}
+.forecast{margin:8px 0 0;color:var(--ink)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{border:0;border-radius:10px;padding:10px 16px;cursor:pointer;font-weight:700;background:var(--ink);color:var(--paper)}
+.btn.quiet{background:transparent;color:var(--ink);border:2px solid var(--rule)}
+.btn.alarm{background:var(--alarm);color:#fff}
+.ask{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.cite{font-size:14px;color:var(--soft);margin-top:10px}
+.alerts{list-style:none;padding:10px 12px;margin:12px 0 0;background:var(--paper);border-radius:10px;font-size:15px}
+.alerts li{padding:3px 0}
+
+.history .row{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--rule)}
+.history .row:last-child{border-bottom:0}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--safe);flex:none}
+.dot.WATCH{background:var(--watch)}.dot.ACT_NOW,.dot.EXCEEDED{background:var(--alarm)}
+.history .grow{flex:1}
+
+/* side rail */
+.panel{background:var(--card);border-radius:16px;padding:16px 18px;margin-bottom:16px}
+.temp{font-size:44px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.station{color:var(--soft);font-size:14px}
+.fc{display:flex;gap:14px;margin-top:10px;font-variant-numeric:tabular-nums;font-size:15px}
+.fc div span{display:block;color:var(--soft);font-size:13px}
+label{display:block;font-size:14px;color:var(--soft);margin:8px 0 4px}
+select,input[type=text],input[type=number]{width:100%;background:var(--paper);border:2px solid var(--rule);border-radius:10px;padding:8px 10px}
+.list .exp{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.list .exp:last-child{border-bottom:0}
+.list .exp div{flex:1}
+.x{border:0;background:transparent;color:var(--soft);cursor:pointer;font-size:20px;line-height:1;padding:4px 8px}
+.feed{font-size:15px;margin:0;padding:0;list-style:none}
+.feed li{padding:5px 0;border-bottom:1px solid var(--rule);color:var(--soft)}
+.feed li:last-child{border-bottom:0}
+.feed b{color:var(--ink);font-weight:700}
+.demo .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.demo .btn{width:100%;padding:9px 10px;font-size:15px}
+.row2{display:flex;gap:8px}
+.row2 > *{flex:1}
+@media (prefers-reduced-motion: reduce){.band .mark{transition:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">PorchSafe</div>
+  <div class="tagline">Medicine and food deliveries, watched until they're inside.</div>
+  <div class="clock" id="clock"></div>
+</header>
+<div class="banner"><div id="banner" role="alert"></div></div>
+
+<main class="layout">
+  <section>
+    <h2>On the porch</h2>
+    <div id="porch"></div>
+    <h2 style="margin-top:28px">Brought inside</h2>
+    <div class="panel history" id="history"></div>
+  </section>
+
+  <aside>
+    <div class="panel">
+      <h2 style="margin-top:0">Outside right now</h2>
+      <div class="temp" id="temp">–</div>
+      <div class="station" id="station"></div>
+      <div class="fc" id="fc"></div>
+    </div>
+
+    <div class="panel list">
+      <h2 style="margin-top:0">Expecting a delivery</h2>
+      <div id="expected"></div>
+      <form id="expectForm">
+        <label for="profile">What's coming</label>
+        <select id="profile"></select>
+        <label for="desc">Name it (optional)</label>
+        <input type="text" id="desc" placeholder="Lantus pens from the mail-order pharmacy">
+        <div style="margin-top:10px"><button class="btn" type="submit">Add to expected</button></div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2 style="margin-top:0">Ring activity</h2>
+      <div class="station" id="ringStatus"></div>
+      <ul class="feed" id="feed"></ul>
+    </div>
+
+    <div class="panel demo">
+      <h2 style="margin-top:0">Simulator</h2>
+      <div class="station">Sends signed Ring webhooks to this app, the same way a real Ring doorbell does.</div>
+      <div class="grid">
+        <button class="btn" data-sim="package_delivery">Package dropped off</button>
+        <button class="btn quiet" data-sim="human">Person at door</button>
+        <button class="btn quiet" data-sim="package_pickup">Package picked up</button>
+        <button class="btn quiet" data-sim="button_press">Doorbell pressed</button>
+      </div>
+      <label for="simTemp">Set the outdoor temperature (°F)</label>
+      <div class="row2"><input type="number" id="simTemp" placeholder="live NWS"><button class="btn quiet" id="simTempBtn" type="button">Apply</button></div>
+      <label for="speed">Clock speed</label>
+      <div class="row2">
+        <select id="speed"><option value="1">Real time</option><option value="30">30× (1 s = 30 s)</option><option value="120">120× (1 s = 2 min)</option></select>
+        <button class="btn quiet" id="reset" type="button">Reset</button>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const STATUS_TEXT = {OK:'Within label range', WATCH:'Bring inside soon', ACT_NOW:'Bring inside now', EXCEEDED:'Exposed beyond label'};
+let state = null, lastAlert = '';
+
+async function api(path, opts){ const r = await fetch(path, opts); return r.json(); }
+const post = (path, body) => api(path, {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body || {})});
+
+function band(p, temp){
+  // scale from 0°F to 130°F (wide enough for freezing porches and Phoenix summers)
+  const lo = 0, hi = 130, pct = (t) => Math.max(0, Math.min(100, (t - lo) / (hi - lo) * 100));
+  let html = '<div class="band" aria-hidden="true"><div class="track"></div>';
+  if (p.excursion_min != null && p.excursion_max != null)
+    html += `<div class="exc" style="left:${pct(p.excursion_min)}%;width:${pct(p.excursion_max)-pct(p.excursion_min)}%"></div>`;
+  const smin = p.store_min ?? lo, smax = p.store_max ?? hi;
+  html += `<div class="store" style="left:${pct(smin)}%;width:${Math.max(pct(smax)-pct(smin),1)}%"></div>`;
+  for (const t of [0, 32, 59, 86, 120]) html += `<div class="tick" style="left:${pct(t)}%">${t}°</div>`;
+  if (temp != null) html += `<div class="mark" style="left:${pct(temp)}%"><span>${Math.round(temp)}°F now</span></div>`;
+  return html + '</div><div class="legend"><span><i style="background:var(--safe)"></i>Labeled storage range</span>'
+    + (p.excursion_min != null ? '<span><i style="border:2px solid var(--safe)"></i>Range the label allows for a limited time</span>' : '') + '</div>';
+}
+
+function porchCard(p){
+  const prof = p.profile_info;
+  let html = `<article class="pkg ${p.status}"><div class="pkg-head"><div>
+      <h3 class="pkg-title">${esc(p.description)}</h3>
+      <div class="pkg-sub">${prof ? esc(prof.label) + ' · ' : ''}seen by ${p.source === 'ring' ? 'Ring' : 'you'} at ${new Date(p.delivered_at_iso).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}</div></div>
+      <div class="minutes"><b>${p.minutes_on_porch}</b><span>min on the porch</span></div></div>`;
+  if (prof){
+    html += `<div class="status ${p.status}">${STATUS_TEXT[p.status]}</div><p class="headline">${esc(p.headline)}</p>`;
+    html += band(prof, state.weather && state.weather.temp_f);
+    if (p.forecast_note) html += `<p class="forecast">${esc(p.forecast_note)}</p>`;
+    html += `<ul class="reasons">${p.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>`;
+    if (p.notified.length) html += `<ul class="alerts">${p.notified.slice().reverse().map(n => `<li><b>${n.to === 'backup' ? 'Asked ' + esc(state.settings.backup_name) : 'Alerted household'}</b> at ${new Date(n.t*1000).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}: ${esc(n.text)}</li>`).join('')}</ul>`;
+    html += `<div class="cite">Label guidance: ${esc(prof.guidance)} <a href="${esc(prof.source_url)}" target="_blank" rel="noopener">${esc(prof.source)}</a></div>`;
+  } else {
+    html += `<p class="headline">${esc(p.headline)}</p>`;
+    if (p.vision_note) html += `<p class="forecast">${esc(p.vision_note)}</p>`;
+    html += `<div class="ask"><span>What is it?</span>${Object.entries(state.profiles).map(([k,v]) => `<button class="btn quiet" data-profile="${k}" data-pkg="${p.id}">${esc(v.label.split(' (')[0])}</button>`).join('')}</div>`;
+  }
+  const alarm = p.status === 'ACT_NOW' || p.status === 'EXCEEDED';
+  html += `<div class="actions"><button class="btn ${alarm ? 'alarm' : ''}" data-inside="${p.id}">I brought it inside</button>`;
+  if (p.has_report) html += `<a class="btn quiet" href="/report/${p.id}" target="_blank" rel="noopener">Exposure report</a>`;
+  return html + '</div></article>';
+}
+
+function render(){
+  const s = state;
+  $('clock').textContent = new Date(s.now).toLocaleString([], {weekday:'short', hour:'numeric', minute:'2-digit'}) + (s.time_scale > 1 ? ` (clock ${s.time_scale}×)` : '');
+  const w = s.weather || {};
+  $('temp').textContent = w.temp_f != null ? Math.round(w.temp_f) + '°F' : '–';
+  $('station').textContent = w.error ? 'Weather unavailable (' + w.error + ')' : `${w.source === 'NWS' ? 'National Weather Service' : w.source}${w.station ? ', station ' + w.station : ''}`;
+  $('fc').innerHTML = (w.forecast || []).slice(0, 4).map(f => `<div><span>in ${f.in_min >= 60 ? Math.round(f.in_min/60) + ' h' : f.in_min + ' min'}</span>${Math.round(f.temp_f)}°</div>`).join('');
+
+  const porch = s.packages.filter(p => !p.inside_at_iso), inside = s.packages.filter(p => p.inside_at_iso);
+  $('porch').innerHTML = porch.length ? porch.map(porchCard).join('')
+    : '<div class="empty">Nothing on the porch. When Ring sees a delivery, PorchSafe starts timing it here.</div>';
+  $('history').innerHTML = inside.length ? inside.map(p => `<div class="row"><span class="dot ${p.worst_status}"></span>
+      <div class="grow"><b>${esc(p.description)}</b><div class="pkg-sub">${p.minutes_on_porch} min on the porch${p.temp_range ? `, ${Math.round(p.temp_range[0])}–${Math.round(p.temp_range[1])}°F outside` : ''}. ${esc(STATUS_TEXT[p.worst_status])}.</div></div>
+      ${p.has_report ? `<a class="btn quiet" href="/report/${p.id}" target="_blank" rel="noopener">Report</a>` : ''}</div>`).join('')
+    : '<div class="pkg-sub">Deliveries you bring in are listed here with how long they were outside.</div>';
+
+  $('expected').innerHTML = s.expected.length ? s.expected.map(e => `<div class="exp"><div><b>${esc(e.description)}</b><div class="pkg-sub">${esc(s.profiles[e.profile].label)}</div></div><button class="x" title="Remove" aria-label="Remove ${esc(e.description)}" data-cancel="${e.id}">×</button></div>`).join('')
+    : '<div class="pkg-sub" style="margin-bottom:6px">Nothing expected. Add a delivery so PorchSafe knows what Ring is about to see.</div>';
+
+  $('ringStatus').textContent = s.ring_configured ? 'Connected to your Ring account.' : 'Simulator mode: no Ring account linked.';
+  $('feed').innerHTML = s.events.length ? s.events.map(e => `<li><b>${esc(e.sub_type ? e.sub_type.replace('_',' ') : e.type.replace('_',' '))}</b> at ${new Date(e.t).toLocaleTimeString([], {hour:'numeric', minute:'2-digit', second:'2-digit'})}</li>`).join('') : '<li>No events yet.</li>';
+
+  const urgent = porch.find(p => p.status === 'ACT_NOW' || p.status === 'EXCEEDED');
+  const b = $('banner');
+  if (urgent){ b.textContent = urgent.headline; b.className = 'on';
+    if (urgent.headline !== lastAlert){ lastAlert = urgent.headline; if (navigator.vibrate) navigator.vibrate([300,150,300]); } }
+  else { b.className = ''; }
+}
+
+async function refresh(){ state = await api('/api/state'); render(); }
+
+document.addEventListener('click', async (e) => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.inside){ await post(`/api/packages/${t.dataset.inside}/inside`); }
+  else if (t.dataset.cancel){ await fetch(`/api/expected/${t.dataset.cancel}`, {method:'DELETE'}); }
+  else if (t.dataset.profile){ await post(`/api/packages/${t.dataset.pkg}/profile`, {profile: t.dataset.profile}); }
+  else if (t.dataset.sim){
+    const type = t.dataset.sim === 'button_press' ? 'button_press' : 'motion_detected';
+    await post('/api/sim/event', {type, sub_type: type === 'button_press' ? '' : t.dataset.sim});
+    await new Promise(r => setTimeout(r, 300));
+  }
+  else if (t.id === 'simTempBtn'){ const v = $('simTemp').value; await post('/api/sim/weather', {temp_f: v === '' ? null : Number(v)}); }
+  else if (t.id === 'reset'){ $('simTemp').value = ''; $('speed').value = '1'; await post('/api/sim/reset'); }
+  else return;
+  refresh();
+});
+$('speed').onchange = async () => { await post('/api/sim/speed', {scale: Number($('speed').value)}); refresh(); };
+$('expectForm').onsubmit = async (e) => { e.preventDefault(); await post('/api/expected', {profile: $('profile').value, description: $('desc').value}); $('desc').value = ''; refresh(); };
+
+(async () => {
+  await refresh();
+  $('profile').innerHTML = Object.entries(state.profiles).map(([k,v]) => `<option value="${k}">${esc(v.label)}</option>`).join('');
+  const es = new EventSource('/api/stream'); es.onmessage = () => refresh();
+  setInterval(refresh, 5000);
+})();
+</script>
+</body>
+</html>
